@@ -16,6 +16,7 @@
 package main
 
 import (
+	"bufio"
 	"crypto/tls"
 	"flag"
 	"io"
@@ -33,6 +34,7 @@ func init() {
 	flag.StringVar(&optAddr, "addr", "127.0.0.1", "IP address on which to serve the MUD")
 	flag.StringVar(&optCertFile, "cert", "cert.pem", "TLS certificate file")
 	flag.StringVar(&optKeyFile, "key", "key.pem", "TLS key file")
+	flag.IntVar(&optLogLevel, "loglevel", 0, "print debugging output; 0=errors only, 1=verbose, 2=very verbose, 3=very very verbose")
 	flag.StringVar(&optPort, "port", "2323", "port on which to serve web interface")
 	flag.Parse()
 }
@@ -48,6 +50,9 @@ func main() {
 		log.Fatal(err)
 	}
 	defer listener.Close()
+	if optLogLevel > 0 {
+		log.Printf("Serving MUD on %s:%s", optAddr, optPort)
+	}
 
 	for {
 		conn, err := listener.Accept()
@@ -56,10 +61,22 @@ func main() {
 		}
 
 		go func(c net.Conn) {
-			// Echo all incoming data.
-			io.Copy(c, c)
-			// Shut down the connection.
-			c.Close()
+			defer c.Close()
+			io.WriteString(c, "\n\nHello, MUD!\n\n")
+
+			scanner := bufio.NewScanner(c)
+			for scanner.Scan() {
+				input := scanner.Text()
+				output, err := parseUserInput(input)
+				if err != nil {
+					return
+				}
+				io.WriteString(c, output)
+			}
+			if err := scanner.Err(); err != nil {
+				log.Printf("main: failed reading from user connection: %v", err)
+			}
+
 		}(conn)
 	}
 
