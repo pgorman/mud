@@ -1,6 +1,9 @@
 # MUD
 
-A MUD (multi-user dungeon).
+This is a dumb little from-scratch MUD (multi-user dungeon) just for me to noodle around with. Goals don't necessarily include producing a playable game.
+
+
+## Connecting to the MUD
 
 Clients connect like:
 
@@ -8,9 +11,12 @@ Clients connect like:
 $ openssl s_client -quiet -connect example.com:2323
 ```
 
-…where `:2323` is the port number.
+…where `:2323` is the MUD's port number.
 
-Generate a self-signed SSL/TLS key for the server:
+
+## Running the MUD Server
+
+When running the MUD server, a a self-signed SSL/TLS cert can be generated like:
 
 ```
 openssl req -x510 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365 -nodes -subj "/C=US/ST=Michigan/L=Detroit/O=MUD/OU=MUD/CN=localhost"
